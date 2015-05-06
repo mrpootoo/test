@@ -209,9 +209,7 @@ class MainScreen(GridLayout):
             if len(intlmsg) > 0:
                 msg += intlmsg
 
-            screenmsg = self.mainlabel.text + "received: %s (%s)\n" % (msg,addr)
-            #if len(screenmsg) > 400:
-            #    screenmsg = screenmsg[-400:]
+            screenmsg = self.mainlabel.text + "\nreceived: %s (%s)\n" % (msg,addr)
             lines = screenmsg.splitlines()
             lines = lines[-10:]
             screenmsg = "\n".join(lines)
