@@ -31,7 +31,7 @@ class MyKeyboardListener(Widget):
             self.app.textinput.text = ''
         else:
             self.app.textinput.text += text
-            self.app.mainlabel.text += text
+            self.app.mainlabel.text += text + "\n"
 
         #if keycode[1] == 'r':
             #self.app.mainlabel.text += 'reprint\n'
