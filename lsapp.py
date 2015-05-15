@@ -145,10 +145,10 @@ class MainScreen(GridLayout):
         msg = msg.strip()
         intlmsg = ''
         badscan = False
+        self.operator.lastscan = time.time()
         
         if len(msg) > 0 and msg[0] == "U":
             self.operator.currentoperator = msg[1:]
-            self.operator.lastscan = time.time()
             self.operator.label.text = "Current Operator: " +  msg[1:]
 
         if self.operator.loggedin() and len(msg) > 0:
