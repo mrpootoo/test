@@ -52,7 +52,7 @@ from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from keyboard import *
-import requests
+#import requests
 
 #payload = {'key1': 'value1', 'key2': 'value2'}
 #r = requests.post("https://secure.letterstream.com/post", verify=True, data=payload) #verify=True forces ssl verify
