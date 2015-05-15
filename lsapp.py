@@ -8,6 +8,7 @@ import MySQLdb
 import MySQLdb.cursors
 import ConfigParser
 import time
+from kivy.clock import Clock
 
 config = ConfigParser.RawConfigParser()
 config.read('ls.cfg')
@@ -60,11 +61,17 @@ import requests
 class Operator:
     def __init__(self):
         self.currentoperator=''
+        self.lastscan=0
     def changeOperator(self,operator):
         self.currentoperator = operator
+        self.lastscan = time.time()
+
+    def checklogin(self,dt):
+        self.loggedin()
+        return 1
 
     def loggedin(self):
-        if len(self.currentoperator)==0:
+        if len(self.currentoperator)==0 or time.time() - self.lastscan > 10:
             GPIO.output(r1Pin, GPIO.LOW)
             self.label.text="Please Scan Operator Badge"
             return False
@@ -110,9 +117,10 @@ class MainScreen(GridLayout):
         self.job = Job()
 
         self.cols = 2
-        self.operator.label = Label(text="no operator label", size_hint=(1, 1),markup=True)
+        self.operator.label = Label(text="Please Scan Operator Badge", size_hint=(1, 1),markup=True)
         self.add_widget(self.operator.label)
         self.operator.loggedin()
+        Clock.schedule_interval(self.operator.checklogin, 30)
 
         view = GridLayout(rows=2, row_force_default=True, row_default_height=40)
         self.status.job = Label(text="Current Job\n", size_hint=(1, 1),markup=True)
@@ -127,24 +135,9 @@ class MainScreen(GridLayout):
         self.mainlabel = Label(text="", size_hint=(2, 1),markup=True)
         self.add_widget(self.mainlabel)
 
-
-        #self.ReprintBtn = Button(text='Reprint')
-        #self.ReprintBtn.bind(on_press=self.buttonpress)
-        #self.add_widget(self.ReprintBtn)
-
-        #view = BoxLayout(orientation='vertical', spacing=10)
-        #toolbar = BoxLayout(size_hint=(1.0, None), height=50)
-        #label = Label(text='Main', color=[.8, .8, .8, .8], bold=True)
-        #toolbar.add_widget(label)
-        #button = Button(text='Processes')
-        #button.bind(on_press=self.buttonpress)
-        #toolbar.add_widget(button)
-        #view.add_widget(toolbar)
-        #self.add_widget(view)
-
-
         reactor.listenTCP(5000, EchoFactory(self))
         MyKeyboardListener(self)
+
     def buttonpress(self,instance):
         print('The button <%s> is being pressed' % instance.text)
 
@@ -152,9 +145,10 @@ class MainScreen(GridLayout):
         msg = msg.strip()
         intlmsg = ''
         badscan = False
-
+        
         if len(msg) > 0 and msg[0] == "U":
             self.operator.currentoperator = msg[1:]
+            self.operator.lastscan = time.time()
             self.operator.label.text = "Current Operator: " +  msg[1:]
 
         if self.operator.loggedin() and len(msg) > 0:
@@ -177,6 +171,7 @@ class MainScreen(GridLayout):
                 badscan = True
 
             if len(msg) > 0:
+
                 db = MySQLdb.connect(host=dbhost,user=dbuser,passwd=dbpass,db=dbdatabase, cursorclass=MySQLdb.cursors.DictCursor)
                 cur = db.cursor()
 
@@ -203,9 +198,11 @@ class MainScreen(GridLayout):
                     self.job.currentjob = msg[2:10].strip()
                     self.job.lastpiece = msg[10:15].strip()
                     self.status.lastpiece.text = "Last Pc: " + self.job.lastpiece
+
+
                 db.commit()
                 db.close()
-
+            
             if len(intlmsg) > 0:
                 msg += intlmsg
 
